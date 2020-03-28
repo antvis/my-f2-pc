@@ -1,0 +1,12 @@
+<mouseable-view
+  onMousemove="mouseMove"
+  onMousedown="mouseDown"
+  onMouseup="mouseUp"
+>
+<canvas
+  id="f2-canvas-{{$id}}"
+  class="f2-canvas"
+  width="{{width}}"
+  height="{{height}}"
+/>
+</mouseable-view>
