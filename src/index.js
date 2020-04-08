@@ -5,7 +5,7 @@ function convertTouches(eventDetail) {
   if (!eventDetail) {
     return [];
   }
-  const { x, y } = eventDetail;
+  const { relativeX: x, relativeY: y } = eventDetail;
   return [{ x, y}];
 }
 
