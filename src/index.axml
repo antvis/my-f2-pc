@@ -2,6 +2,7 @@
   onMousemove="mouseMove"
   onMousedown="mouseDown"
   onMouseup="mouseUp"
+  relative
 >
 <canvas
   id="f2-canvas-{{$id}}"
