@@ -1,25 +1,20 @@
-import F2 from '@antv/f2';
+// import F2 from '@antv/f2';
+const F2 = require('@antv/f2/lib/index-all'); //解决pieLabel报错
 import { my as F2Context } from '@antv/f2-context';
 
-function convertTouches(eventDetail) {
-  if (!eventDetail) {
-    return [];
-  }
-  const { relativeX: x, relativeY: y } = eventDetail;
-  return [{ x, y}];
-}
 
-function convertEvent(mouseEvent) {
-  const touches = convertTouches(mouseEvent.detail);
-  const changedTouches = touches;
-  return {
-    preventDefault: function() {},
-    touches,
-    changedTouches,
+function wrapEvent(e) {
+  if (!e) return;
+  if (!e.preventDefault) {
+    e.preventDefault = function () { };
   }
+  return e
 }
 
 Component({
+  data: {
+    firstEnter: true, //用于比较是否第一次鼠标hover到图表，第一次的话触发一下touchStart事件，帮助展示tooltips
+  },
   props: {
     onInit: () => {}
   },
@@ -50,26 +45,62 @@ Component({
       });
   },
   methods: {
-    mouseDown(e) {
-      const canvasEl = this.canvasEl;
-      if (!canvasEl) {
-        return;
-      }
-      canvasEl.dispatchEvent('touchstart', convertEvent(e));
-    },
+    //pc端需要tooltip效果，在mouseMove触发touchstart事件,去掉mouseDown事件
     mouseMove(e) {
       const canvasEl = this.canvasEl;
       if (!canvasEl) {
         return;
       }
-      canvasEl.dispatchEvent('touchmove', convertEvent(e));
+      this.handlePosition(e);
     },
     mouseUp(e) {
       const canvasEl = this.canvasEl;
       if (!canvasEl) {
         return;
       }
-      canvasEl.dispatchEvent('touchend', convertEvent(e));
-    }
+      this.handlePosition(e);
+    },
+    handlePosition(e) {
+      const {id, firstEnter} = this.data;
+      const canvasEl = this.canvasEl;
+      const that = this;
+      const query = my.createSelectorQuery()
+      query.select('#f2-canvas-wrapper').boundingClientRect()
+      query.selectViewport().scrollOffset()
+      query.exec(function (res) {
+        var offsetX = e.detail.x - res[0].left - res[1].scrollLeft;
+        var offsetY = e.detail.y - res[0].top - res[1].scrollTop;
+        var x = offsetX;
+        var y = offsetY;
+        const typeMap = {
+          'mouseup': 'touchEnd',
+          'mousemove': 'touchMove',
+        }
+        const obj = {
+          x,
+          y,
+          "identifier": 0
+        }
+        const currentTarget = {
+          dataset: {},
+          id,
+          tagName: "canvas"
+        }
+        const newEvent = {
+          currentTarget,
+        }
+        newEvent.touches = [obj];
+        newEvent.changedTouches = [obj];
+        newEvent.points = [obj];
+        newEvent.type = typeMap[e.type];
+        canvasEl.dispatchEvent(firstEnter? 'touchstart':newEvent.type.toLowerCase(), wrapEvent(newEvent));
+        if(firstEnter) {
+          that.setData({
+            firstEnter: false
+          })
+        }
+      })
+
+    },
   }
 });

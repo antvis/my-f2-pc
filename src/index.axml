@@ -1,7 +1,7 @@
 <mouseable-view
   onMousemove="mouseMove"
-  onMousedown="mouseDown"
   onMouseup="mouseUp"
+  id="f2-canvas-wrapper"
   relative
 >
 <canvas
